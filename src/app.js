@@ -233,6 +233,14 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
       localStorage.setItem(activeStoreKey, JSON.stringify(data));
     } catch {}
   }
+  function syncPracticeFont() {
+    const fontSize = [18, 20, 23, 27, 32].includes(Number(data.font))
+      ? Number(data.font)
+      : 23;
+    data.font = fontSize;
+    $("#fontSetting").value = String(fontSize);
+    $("#textDisplay").style.fontSize = `${fontSize}px`;
+  }
   function readDataStore(key) {
     try {
       const value = JSON.parse(localStorage.getItem(key) || "null");
@@ -291,7 +299,7 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     data.punctuation = Boolean(data.punctuation ?? data.letterPunctuation);
     data.letterPunctuation = data.punctuation;
     data.streak = Math.max(0, Number(data.streak) || 0);
-    data.font = [18, 20, 23, 27, 32].includes(Number(data.font)) ? Number(data.font) : 23;
+    syncPracticeFont();
     data.goalMinutes = [5, 10, 15, 20].includes(Number(data.goalMinutes)) ? Number(data.goalMinutes) : 15;
     data.soundStyle = ["soft-click", "soft-hit", "mechanical", "hard-click"].includes(data.soundStyle) ? data.soundStyle : "soft-click";
     data.soundVolume = Number.isFinite(Number(data.soundVolume)) ? Math.min(1, Math.max(0, Number(data.soundVolume))) : 0.6;
@@ -307,9 +315,8 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
 
     document.body.classList.toggle("dark", data.theme === "dark");
     document.body.dataset.palette = data.colorPalette;
-    $("#textDisplay").style.fontSize = `${data.font}px`;
+    syncPracticeFont();
     $("#liveStats").classList.toggle("hidden", !data.showLive);
-    $("#fontSetting").value = String(data.font);
     $("#liveSetting").checked = data.showLive;
     $("#soundSetting").checked = data.sound;
     $("#soundStyleSetting").value = data.soundStyle;
@@ -954,6 +961,7 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
   }
   let settingsReturnFocus = null;
   function openSettings() {
+    syncPracticeFont();
     settingsReturnFocus = document.activeElement;
     $("#settingsPanel").classList.add("open");
     $("#scrim").classList.add("visible");
@@ -1224,6 +1232,7 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     await syncPreferences(user);
   }
   function applySavedPreferences() {
+    syncPracticeFont();
     $$("#durationChoices .choice").forEach((button) =>
       button.classList.toggle(
         "selected",
@@ -1676,7 +1685,7 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
   });
   $("#fontSetting").addEventListener("change", (event) => {
     data.font = Number(event.target.value);
-    $("#textDisplay").style.fontSize = `${data.font}px`;
+    syncPracticeFont();
     persist();
   });
   $("#dailyGoalChoices").addEventListener("click", (event) => {
@@ -1827,7 +1836,7 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
   });
   $("#todayLabel").setAttribute("datetime", todayKey());
   $("#liveStats").classList.toggle("hidden", !data.showLive);
-  $("#textDisplay").style.fontSize = `${data.font}px`;
+  syncPracticeFont();
   $$("#dailyGoalChoices button").forEach((button) =>
     button.classList.toggle(
       "selected",
