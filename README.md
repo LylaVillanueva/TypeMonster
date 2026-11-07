@@ -26,9 +26,11 @@ Practice works without account credentials. To enable sign-in and cloud sync:
 
 1. Create a Supabase project and run [`supabase/schema.sql`](supabase/schema.sql) in its SQL Editor. The schema enables row-level security, limits account data to its owner, and lets guests submit feedback without reading feedback records.
    If you already created the tables with an earlier version, also run [`supabase/align_column_types.sql`](supabase/align_column_types.sql) to align the bounded counters with the diagram's `int2` types.
-2. In Vercel **Project Settings → Environment Variables**, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` for the environments you deploy.
+2. In Vercel **Project Settings → Environment Variables**, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` for each environment you deploy. Copy both values from the **same** Supabase project. Use its browser-safe publishable key (`sb_publishable_…`) or legacy anon key (`eyJ…`); never use a secret or `service_role` key. If the Vercel project already uses `VITE_SUPABASE_ANON_KEY`, that name is also supported.
 3. In Supabase **Authentication → URL Configuration**, add your Vercel production URL (and any preview URLs you use) to the allowed redirect URLs.
-4. Redeploy so the build can include the configured public project URL and publishable key.
+4. Redeploy after adding or changing environment variables. Vite embeds these values during the build, so updating Vercel settings alone does not update an existing deployment.
+
+If sign-in reports **invalid API key**, verify the deployed environment has the URL and key from the same Supabase project and that the key is publishable/anon, then redeploy. If Help cannot send feedback, make sure the latest `supabase/schema.sql` has been run in that project's SQL Editor; feedback uses the `user_feedback` table.
 
 The Supabase publishable key is intended for browser use; database access is protected by the schema's row-level security policies. On a browser's first sign-in, its guest progress moves into that account and the guest profile resets; each signed-in account then has its own local data scope. Never put a Supabase secret or `service_role` key in a `VITE_*` variable or client-side code.
 

@@ -1,4 +1,4 @@
-import { supabase } from "../supabase/client.js";
+import { supabase, supabaseConfigError } from "../supabase/client.js";
 
 (() => {
   const $ = (selector) => document.querySelector(selector);
@@ -314,6 +314,8 @@ import { supabase } from "../supabase/client.js";
     $("#soundStyleSetting").value = data.soundStyle;
     $("#soundVolumeSetting").value = String(Math.round(data.soundVolume * 100));
     $("#soundVolumeValue").textContent = `${Math.round(data.soundVolume * 100)}%`;
+    for (const pool of Object.values(soundPlayers))
+      for (const audio of pool) audio.volume = data.soundVolume;
     $("#musicSetting").checked = data.musicEnabled;
     $("#musicVolumeSetting").value = String(Math.round(data.musicVolume * 100));
     $("#musicVolumeValue").textContent = `${Math.round(data.musicVolume * 100)}%`;
@@ -1363,20 +1365,27 @@ import { supabase } from "../supabase/client.js";
   $("#authForm").addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!supabase) {
-      $("#authMessage").textContent =
-        "Sign-in is unavailable until the Supabase variables are set in Vercel.";
+      $("#authMessage").textContent = supabaseConfigError || "Sign-in is unavailable right now.";
       return;
     }
     const button = $("#authSubmit");
     button.disabled = true;
     $("#authMessage").textContent = "Sending your secure sign-in link…";
-    const { error } = await supabase.auth.signInWithOtp({
-      email: $("#authEmail").value.trim(),
-      options: { emailRedirectTo: window.location.origin },
-    });
+    let error = null;
+    try {
+      ({ error } = await supabase.auth.signInWithOtp({
+        email: $("#authEmail").value.trim(),
+        options: { emailRedirectTo: window.location.origin },
+      }));
+    } catch {
+      error = { message: "We couldn’t reach Supabase. Check your connection and try again." };
+    }
     button.disabled = false;
+    const invalidKey = error?.message?.toLowerCase().includes("invalid api key");
     $("#authMessage").textContent = error
-      ? error.message
+      ? invalidKey
+        ? "Supabase rejected the API key. Check that the Vercel URL and publishable/anon key belong to the same Supabase project, then redeploy."
+        : error.message
       : "Check your email for the sign-in link.";
   });
   $("#signOutButton").addEventListener("click", async () => {
@@ -1550,10 +1559,10 @@ import { supabase } from "../supabase/client.js";
   $("#soundSetting").checked = data.sound;
   $("#soundStyleSetting").value = data.soundStyle;
   $("#soundVolumeSetting").value = String(Math.round(data.soundVolume * 100));
-  $("#soundVolumeValue").value = `${Math.round(data.soundVolume * 100)}%`;
+  $("#soundVolumeValue").textContent = `${Math.round(data.soundVolume * 100)}%`;
   $("#musicSetting").checked = data.musicEnabled;
   $("#musicVolumeSetting").value = String(Math.round(data.musicVolume * 100));
-  $("#musicVolumeValue").value = `${Math.round(data.musicVolume * 100)}%`;
+  $("#musicVolumeValue").textContent = `${Math.round(data.musicVolume * 100)}%`;
   $("#soundSetting").addEventListener("change", (event) => {
     data.sound = event.target.checked;
     persist();
@@ -1565,10 +1574,13 @@ import { supabase } from "../supabase/client.js";
   });
   $("#previewSound").addEventListener("click", () => playTypingSound($("#soundStyleSetting").value, true));
   $("#soundVolumeSetting").addEventListener("input", (event) => {
-    data.soundVolume = Number(event.target.value) / 100;
-    $("#soundVolumeValue").value = `${event.target.value}%`;
+    data.soundVolume = Math.min(1, Math.max(0, Number(event.target.value) / 100));
+    for (const pool of Object.values(soundPlayers))
+      for (const audio of pool) audio.volume = data.soundVolume;
+    $("#soundVolumeValue").textContent = `${Math.round(data.soundVolume * 100)}%`;
     persist();
   });
+  $("#soundVolumeSetting").addEventListener("change", () => playTypingSound(data.soundStyle, true));
   $("#musicSetting").addEventListener("change", (event) => {
     data.musicEnabled = event.target.checked;
     persist();
@@ -1578,10 +1590,14 @@ import { supabase } from "../supabase/client.js";
     } else backgroundMusic.pause();
   });
   $("#musicVolumeSetting").addEventListener("input", (event) => {
-    data.musicVolume = Number(event.target.value) / 100;
+    data.musicVolume = Math.min(1, Math.max(0, Number(event.target.value) / 100));
     backgroundMusic.volume = data.musicVolume;
-    $("#musicVolumeValue").value = `${event.target.value}%`;
+    $("#musicVolumeValue").textContent = `${Math.round(data.musicVolume * 100)}%`;
     persist();
+  });
+  $("#musicVolumeSetting").addEventListener("change", () => {
+    if (data.musicEnabled && backgroundMusic.paused)
+      void backgroundMusic.play().catch(() => notify("Your browser could not start music yet."));
   });
   $("#liveSetting").addEventListener("change", (event) => {
     data.showLive = event.target.checked;
@@ -1631,7 +1647,7 @@ import { supabase } from "../supabase/client.js";
       return;
     }
     if (!supabase) {
-      status.textContent = "Feedback isn’t available right now. Please try again later.";
+      status.textContent = supabaseConfigError || "Feedback isn’t available right now. Please try again later.";
       status.classList.add("error");
       return;
     }
@@ -1655,7 +1671,12 @@ import { supabase } from "../supabase/client.js";
     }
     if (submissionError) {
       console.warn("Feedback submission failed:", submissionError.code || "request_error");
-      status.textContent = "We couldn’t send that just now. Please check your connection and try again.";
+      const errorText = String(submissionError.message || "").toLowerCase();
+      status.textContent = errorText.includes("invalid api key")
+        ? "Supabase rejected the API key. Check the matching Vercel URL and publishable/anon key, then redeploy."
+        : submissionError.code === "PGRST205" || errorText.includes("user_feedback")
+          ? "Feedback isn’t set up in Supabase yet. Run supabase/schema.sql in its SQL Editor."
+          : "We couldn’t send that just now. Please check your connection and try again.";
       status.classList.add("error");
       return;
     }
