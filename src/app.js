@@ -52,7 +52,7 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     modeDrafts: oldData.modeDrafts && typeof oldData.modeDrafts === "object" ? oldData.modeDrafts : {},
     passageSettingsPending: false,
     wordCount: [10, 25, 50, 100].includes(Number(oldData.wordCount)) ? Number(oldData.wordCount) : 25,
-    uppercase: oldData.uppercase === undefined ? (oldData.uppercaseLetters === undefined ? true : Boolean(oldData.uppercaseLetters)) : Boolean(oldData.uppercase),
+    uppercase: oldData.uppercase === undefined ? Boolean(oldData.uppercaseLetters) : Boolean(oldData.uppercase),
     numbers: Boolean(oldData.numbers),
   };
   const defaultDataSnapshot = JSON.parse(JSON.stringify(data));
@@ -222,6 +222,7 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     correctAttempts = 0;
   let focusPromptActive = false,
     toastTimer,
+    streakCelebrationTimer,
     focusFilterTimer = null,
     lastTickAt = 0,
     lastPersistSecond = -1;
@@ -246,7 +247,7 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
       history: [], theme: "light", colorPalette: "garden", sound: false,
       soundStyle: "soft-click", soundVolume: 0.6, musicEnabled: false,
       musicVolume: 0.25, showLive: true, font: 18, roundSeconds: 30,
-      goalMinutes: 15, focusLetters: [], uppercase: true, numbers: false,
+      goalMinutes: 15, focusLetters: [], uppercase: false, numbers: false,
       punctuation: false, letterPunctuation: false, dailyTotals: {},
       dailyGoals: {}, practiceDate: "", streak: 0, lastPractice: "",
       activeMode: "time", modeDrafts: {}, wordCount: 25,
@@ -516,7 +517,17 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
   function dailyMilliseconds() {
     return Number(data.dailyTotals[todayKey()]) || 0;
   }
+  function showStreakCelebration(streak) {
+    const popup = $("#streakCelebration");
+    $("#streakCelebrationCount").textContent = String(streak);
+    popup.classList.remove("show");
+    void popup.offsetWidth;
+    popup.classList.add("show");
+    clearTimeout(streakCelebrationTimer);
+    streakCelebrationTimer = setTimeout(() => popup.classList.remove("show"), 2800);
+  }
   function updateStreak() {
+    const previousStreak = Number(data.streak) || 0;
     const today = todayKey();
     const yesterday = todayKey(new Date(Date.now() - 86400000));
     const todayHit =
@@ -532,6 +543,7 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
       cursor.setDate(cursor.getDate() - 1);
     }
     data.streak = streak;
+    if (todayHit && streak > previousStreak) showStreakCelebration(streak);
     data.lastPractice = todayHit
       ? today
       : (Number(data.dailyTotals[yesterday]) || 0) >=

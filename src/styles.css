@@ -1180,6 +1180,52 @@ kbd {
 .scrim.visible {
   display: block;
 }
+.streak-celebration {
+  position: fixed;
+  left: 50%;
+  bottom: 64px;
+  z-index: 31;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 12px 17px 12px 13px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 14px 42px #18201924;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 12px) scale(.96);
+  transition: opacity .2s ease, transform .24s cubic-bezier(.2,.8,.2,1);
+}
+.streak-celebration.show {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+.streak-celebration > img {
+  width: 39px;
+  height: 39px;
+  flex: 0 0 39px;
+  object-fit: contain;
+}
+.streak-celebration > span {
+  display: grid;
+  gap: 3px;
+}
+.streak-celebration strong {
+  font: 600 14px var(--sans);
+}
+.streak-celebration strong b {
+  color: var(--green);
+  font: 700 17px var(--mono);
+}
+.streak-celebration small {
+  color: var(--muted);
+  font: 11px var(--sans);
+}
 .toast {
   position: fixed;
   bottom: 23px;
@@ -3901,24 +3947,6 @@ body.dark[data-palette="lavender"] {
   text-align: center;
   box-shadow: 0 28px 100px #101a1850;
   animation: auth-pop-in 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
-@media (min-width: 600px) {
-  .auth-overlay.is-account {
-    place-items: start end;
-    padding: 24px;
-  }
-  .auth-overlay.is-account .auth-dialog {
-    margin: 0;
-    text-align: left;
-    transform-origin: top right;
-  }
-  .auth-overlay.is-account .auth-mascot {
-    margin-left: 0;
-  }
-  .auth-overlay.is-account .auth-dialog .eyebrow,
-  .auth-overlay.is-account .auth-subtitle {
-    margin-left: 0;
-  }
 }
 .auth-dialog .result-close {
   position: absolute;
