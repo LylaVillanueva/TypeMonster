@@ -2746,11 +2746,10 @@ main {
   }
 }
 
-/* The typing caret appears only while the hidden input owns keyboard focus. */
+/* Show the passage caret while the typing input has focus, including before the first key. */
 .char.current:before {
   display: none;
 }
-.typing-area.caret-ready .char.current:before,
 .typing-area.focused .char.current:before {
   display: block;
   animation: typing-caret-blink 1s steps(2, start) infinite;
@@ -3902,6 +3901,24 @@ body.dark[data-palette="lavender"] {
   text-align: center;
   box-shadow: 0 28px 100px #101a1850;
   animation: auth-pop-in 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@media (min-width: 600px) {
+  .auth-overlay.is-account {
+    place-items: start end;
+    padding: 24px;
+  }
+  .auth-overlay.is-account .auth-dialog {
+    margin: 0;
+    text-align: left;
+    transform-origin: top right;
+  }
+  .auth-overlay.is-account .auth-mascot {
+    margin-left: 0;
+  }
+  .auth-overlay.is-account .auth-dialog .eyebrow,
+  .auth-overlay.is-account .auth-subtitle {
+    margin-left: 0;
+  }
 }
 .auth-dialog .result-close {
   position: absolute;

@@ -1785,6 +1785,9 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     button.classList.toggle("selected", Number(button.dataset.value) === wordCount),
   );
   renderText();
+  if (!$("#practiceView").classList.contains("hidden")) {
+    requestAnimationFrame(() => inputEl.focus({ preventScroll: true }));
+  }
   if (supabase) {
     let lastSyncedUserId = null;
     let authEventReceived = false;
