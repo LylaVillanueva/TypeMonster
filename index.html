@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#18243b" />
+    <meta
+      name="description"
+      content="Type Monster — focused typing practice and touch-typing lessons."
+    />
+    <title>Type Monster — typing practice</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="icon" href="./assets/logo.ico" type="image/x-icon" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#practiceView" aria-label="Type Monster home"><span class="brand-mark"><img src="./assets/logo.ico" alt="" aria-hidden="true"></span><span>TYPE MONSTER</span></a>
+        <nav class="main-nav" aria-label="Main navigation">
+          <button class="nav-link active" data-view="practice" aria-current="page">Practice</button>
+          <button class="nav-link" data-view="learn">Learn</button>
+          <button class="nav-link" data-view="progress">Progress</button>
+        </nav>
+        <div class="top-actions">
+          <div class="streak-chip" aria-label="Daily streak"><span class="streak-flame"><img src="./assets/streak.ico" alt="" aria-hidden="true"></span><div><strong id="streakValue">0</strong><span>day streak</span></div></div>
+          <button class="daily-header-control" id="goalControl" aria-label="Start daily practice"><span class="goal-header-icon" id="goalControlIcon">▶</span><span class="goal-header-time"><strong id="goalClock">15:00</strong><small id="goalClockLabel">LEFT TODAY</small></span><time id="todayLabel" class="daily-header-date"></time><span class="goal-header-label" id="goalControlLabel">Start a round</span></button>
+          <button class="quiet-button" id="themeToggle" aria-label="Switch color theme" title="Switch color theme">◐</button>
+          <button class="quiet-button" id="settingsToggle" aria-label="Open settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h5m4 0h7M4 17h9m4 0h3"/><circle cx="11" cy="7" r="2"/><circle cx="15" cy="17" r="2"/></svg></button>
+          <button class="account-button" id="profileButton" title="Guest profile · click to sign in"><span class="avatar">M</span><span>Guest</span><span class="chevron">⌄</span></button>
+        </div>
+      </header>
+
+      <main>
+        <section class="practice-view" id="practiceView">
+          <div class="practice-layout">
+            <section class="main-column" aria-label="Typing practice">
+              <div class="session-card">
+                <div class="test-toolbar">
+                  <div class="mode-tabs" role="tablist" aria-label="Practice style">
+                    <button class="mode-tab selected" data-mode="time">Timed</button>
+                    <button class="mode-tab" data-mode="words">Words</button>
+                    <button class="mode-tab" data-mode="zen">Free type</button>
+                    <button class="mode-tab" data-mode="quote">Quote</button>
+                  </div>
+                  <div class="extra-options practice-text-controls" id="practiceTextControls" aria-label="Text options">
+                    <div class="global-text-options" id="globalTextOptions">
+                      <button class="option-toggle" id="uppercaseToggle" aria-pressed="false" title="Capitalize sentence starts and the pronoun I">ABC Uppercase</button>
+                      <button class="option-toggle" id="punctuationToggle" aria-pressed="false">, Punctuation</button>
+                      <button class="option-toggle" id="numbersToggle" aria-pressed="false"># Numbers</button>
+                    </div>
+                    <div class="passage-customizer" id="passageCustomizer">
+                      <label for="focusLetterInput">Type up to five letters to practice more often.</label>
+                      <div class="passage-input-row"><span aria-hidden="true">abc</span><input id="focusLetterInput" type="text" maxlength="5" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. rst"><button class="text-button" id="clearLetters" aria-label="Clear selected letters">Clear</button></div>
+                    </div>
+                  </div>
+                  <button class="restart-button" id="restartButton" aria-label="Generate a new passage" title="Generate a new passage">↻ <span>New passage</span></button>
+                </div>
+                <div class="round-options" id="roundOptions">
+                  <div class="choice-group" id="durationChoices" aria-label="Round length">
+                    <span class="option-label">ROUND LENGTH</span>
+                    <button class="choice" data-value="15">15 sec</button>
+                    <button class="choice selected" data-value="30">30 sec</button>
+                    <button class="choice" data-value="60">60 sec</button>
+                    <button class="choice" data-value="120">120 sec</button>
+                  </div>
+                  <div class="choice-group hidden" id="wordChoices" aria-label="Word count">
+                    <span class="option-label">WORD COUNT</span>
+                    <button class="choice" data-value="10">10</button>
+                    <button class="choice selected" data-value="25">25</button>
+                    <button class="choice" data-value="50">50</button>
+                    <button class="choice" data-value="100">100</button>
+                  </div>
+                </div>
+                <p class="mode-description" id="modeDescription">
+                  <span>i</span
+                  ><span
+                    >A short passage against the clock.</span
+                  >
+                </p>
+                <div
+                class="typing-area caret-ready"
+                  id="typingArea"
+                  tabindex="0"
+                  role="textbox"
+                  aria-label="Typing practice. Click the passage to begin."
+                  aria-multiline="true"
+                >
+                  <div class="live-stats" id="liveStats">
+                    <div>
+                      <span class="stat-label">ROUND</span
+                      ><strong id="timerValue">30<span>s</span></strong>
+                    </div>
+                    <div>
+                      <span class="stat-label">NET WPM</span
+                      ><strong id="liveWpm">0<span> wpm</span></strong>
+                    </div>
+                    <div>
+                      <span class="stat-label">ACCURACY</span
+                      ><strong id="liveAccuracy">100<span>%</span></strong>
+                    </div>
+                    <span class="round-status" id="roundStatus"
+                      >Ready when you are</span
+                    >
+                  </div>
+                  <div class="text-display" id="textDisplay">Getting a fresh passage ready…</div>
+                  <textarea
+                    id="typingInput"
+                    aria-label="Type the displayed text here"
+                    autocomplete="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                  ></textarea>
+                  <div class="focus-hint" id="focusHint">
+                    <span class="hint-key">↵</span
+                    ><span>Start typing</span>
+                  </div>
+                </div>
+                <div class="session-footer">
+                  <span
+                    ><kbd>esc</kbd> <span id="escapeAction">pause</span> <span class="footer-dot">·</span>
+                    <kbd>tab</kbd> + <kbd>enter</kbd> new passage</span
+                  ><span id="sessionHint"
+                    >Accuracy first.</span
+                  >
+                </div>
+              </div>
+              <div
+                class="result-overlay hidden"
+                id="resultOverlay"
+                aria-hidden="true"
+              >
+                <div class="result-backdrop" id="resultBackdrop"></div>
+                <section
+                  class="result-dialog"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="resultTitle"
+                >
+                  <button
+                    class="result-close"
+                    id="closeResult"
+                    aria-label="Close results"
+                  >
+                    ×
+                  </button>
+                  <div class="result-mascot"><img src="./assets/logo.ico" alt=""></div>
+                  <div class="result-kicker">
+                    <span class="result-check">✓</span> ROUND COMPLETE
+                  </div>
+                  <h2 id="resultTitle">That was a good run.</h2>
+                  <p class="result-subtitle" id="resultNote">
+                    Your practice has been saved.
+                  </p>
+                  <div class="result-main">
+                    <div class="result-primary">
+                      <span class="stat-label">NET WPM</span>
+                      <div class="result-wpm">
+                        <b id="resultWpm">0</b><span>wpm</span>
+                      </div>
+                    </div>
+                    <div class="result-metric">
+                      <span>Accuracy</span
+                      ><strong id="resultAccuracy">100%</strong>
+                    </div>
+                    <div class="result-metric">
+                      <span>Gross WPM</span><strong id="resultRaw">0</strong>
+                    </div>
+                    <div class="result-metric">
+                      <span>Characters</span
+                      ><strong id="resultChars">0/0</strong>
+                    </div>
+                  </div>
+                  <div class="result-chart">
+                    <div class="chart-caption">
+                      <span>PACE THIS ROUND</span><span>WPM</span>
+                    </div>
+                    <svg
+                      id="resultChart"
+                      viewBox="0 0 640 100"
+                      preserveAspectRatio="none"
+                      role="img"
+                      aria-label="Typing speed chart"
+                    ></svg>
+                  </div>
+                  <div class="result-actions">
+                    <button class="secondary-button" id="resultCloseAction">Continue typing</button>
+                  </div>
+                  <div class="result-shortcut">
+                    <kbd>esc</kbd> close <span>·</span> <kbd>enter</kbd> continue
+                  </div>
+                </section>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section
+          class="learn-view hidden"
+          id="learnView"
+          aria-label="Touch typing lessons"
+        >
+          <div class="learn-header">
+            <div>
+              <div class="eyebrow"><span class="live-dot"></span> LEARN</div>
+              <h1>Touch typing, <em>step by step.</em></h1>
+              <p class="subheading">
+                Learn the home row, then reach each key with the closest finger.
+              </p>
+            </div>
+            <a
+              class="learn-external"
+              href="https://www.typing.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              >More lessons at Typing.com <span>↗</span></a
+            >
+          </div>
+          <div class="learn-layout">
+            <nav class="lesson-list" aria-label="Typing lessons">
+              <button class="lesson-step active" data-lesson="home">
+                <span>01</span
+                ><span
+                  ><strong>Home row</strong
+                  ><small>Find your starting place</small></span
+                ><span class="step-arrow">›</span></button
+              ><button class="lesson-step" data-lesson="top">
+                <span>02</span
+                ><span
+                  ><strong>Top row</strong
+                  ><small>Reach up, return home</small></span
+                ><span class="step-arrow">›</span></button
+              ><button class="lesson-step" data-lesson="bottom">
+                <span>03</span
+                ><span
+                  ><strong>Bottom row</strong
+                  ><small>Reach down, return home</small></span
+                ><span class="step-arrow">›</span>
+              </button>
+            </nav>
+            <section class="lesson-card">
+              <div class="lesson-copy">
+                <div class="eyebrow" id="lessonCounter">
+                  LESSON 1 OF 3 · HOME ROW
+                </div>
+                <h2 id="lessonTitle">Rest your fingers at home.</h2>
+                <p id="lessonDescription">
+                  Place your left fingers on A, S, D, F and your right fingers
+                  on J, K, L, ;. Let both thumbs rest lightly over the space
+                  bar. The small raised marks on F and J help you find home
+                  without looking.
+                </p>
+                <div class="finger-legend">
+                  <span><i class="finger pinky"></i>Pinky</span
+                  ><span><i class="finger ring"></i>Ring</span
+                  ><span><i class="finger middle"></i>Middle</span
+                  ><span><i class="finger index"></i>Index</span
+                  ><span><i class="finger thumb"></i>Thumb</span>
+                </div>
+              </div>
+              <div class="keyboard-wrap">
+                <div class="keyboard-label">STANDARD QWERTY · CLICK THE HIGHLIGHTED KEYS</div>
+                <div
+                  class="keyboard"
+                  id="lessonKeyboard"
+                  aria-label="Color coded keyboard and finger guide"
+                ></div>
+                <div class="hand-note">
+                  <span>LEFT HAND</span
+                  ><span
+                    >Keep wrists relaxed. Move one finger at a time, then return
+                    it home.</span
+                  ><span>RIGHT HAND</span>
+                </div>
+              </div>
+              <div class="lesson-bottom">
+                <span id="lessonTip"
+                  >Rest your index fingers on F and J. Your other fingers fall
+                  naturally into place.</span
+                >
+                <div class="lesson-actions">
+                  <button class="lesson-drill" id="lessonDrill">
+                    Practice these keys</button
+                  ><button class="lesson-next" id="nextLesson">
+                    Next lesson <span>→</span>
+                  </button>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="progress-view hidden" id="progressView">
+          <div class="progress-intro">
+            <div class="eyebrow"><span class="live-dot"></span> PROGRESS</div>
+            <h1>Your practice, <em>so far.</em></h1>
+          </div>
+          <div class="progress-overview">
+            <div>
+              <span class="stat-label">PERSONAL BEST</span
+              ><strong id="progressBest">—</strong><small>wpm</small>
+            </div>
+            <div>
+              <span class="stat-label">AVERAGE SPEED</span
+              ><strong id="progressAverage">—</strong><small>wpm</small>
+            </div>
+            <div>
+              <span class="stat-label">ROUNDS COMPLETED</span
+              ><strong id="progressTests">0</strong><small>rounds</small>
+            </div>
+            <div>
+              <span class="stat-label">BEST ACCURACY</span
+              ><strong id="progressAccuracy">—</strong><small>%</small>
+            </div>
+          </div>
+          <section class="pace-card" aria-labelledby="paceTitle">
+            <div class="pace-heading"><div><h2 id="paceTitle">Your pace</h2></div><span class="pace-count" id="paceCount">0 / 10</span></div>
+            <div class="pace-chart-wrap"><div class="pace-axis" aria-hidden="true"><span>WPM</span><span id="paceAxisTop">100</span><span id="paceAxisMid">50</span><span>0</span></div><svg id="progressChart" viewBox="0 0 700 190" preserveAspectRatio="none" role="img" aria-label="Chart showing up to ten recent unique typing speeds"></svg></div>
+            <div id="progressChartLabels" class="pace-labels"></div><p id="progressObservation" class="pace-observation">Complete a round to see your pace.</p>
+          </section>
+          <section class="history-card">
+            <div class="history-heading">
+              <div>
+                <h2>Recent speeds</h2>
+              </div>
+              <button class="text-button" id="clearHistory">
+                Clear history
+              </button>
+            </div>
+            <div id="historyList" class="history-list"></div>
+          </section>
+          <p class="local-note">Saved on this device. Sign in to sync across devices.</p>
+        </section>
+        <aside class="advocacy-banner" aria-label="Pahayag" lang="tl">
+          <span class="advocacy-mark" aria-hidden="true">✦</span>
+          <p>Ang Lupa ay para sa mga Pilipino at hindi para sa dayuhan!</p>
+        </aside>
+      </main>
+
+      <div class="auth-overlay hidden" id="authOverlay" aria-hidden="true">
+        <div class="auth-backdrop" id="authBackdrop"></div>
+        <section
+          class="auth-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="authTitle"
+        >
+          <button
+            class="result-close"
+            id="closeAuth"
+            aria-label="Close sign in"
+          >
+            ×
+          </button>
+          <div class="auth-mascot"><img src="./assets/logo.ico" alt="Type Monster"></div>
+          <div class="eyebrow" id="authEyebrow">YOUR PRACTICE, EVERYWHERE</div>
+          <h2 id="authTitle">Sign in</h2>
+          <p class="auth-subtitle" id="authSubtitle">Save your rounds and streak across devices.</p>
+          <p class="auth-account hidden" id="authAccount"></p>
+          <form id="authForm">
+            <label for="authEmail">Email address</label
+            ><input
+              id="authEmail"
+              type="email"
+              autocomplete="email"
+              required
+              placeholder="you@example.com"
+            /><button class="result-next" type="submit" id="authSubmit">
+              Send sign-in link <span>→</span>
+            </button>
+          </form>
+          <div class="auth-message" id="authMessage" role="status"></div>
+          <button class="secondary-button hidden" id="signOutButton">
+            Sign out</button
+          >
+        </section>
+      </div>
+      <aside
+        class="settings-panel"
+        id="settingsPanel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settingsTitle"
+        aria-hidden="true"
+      >
+        <div class="panel-heading">
+          <div>
+            <div class="eyebrow">MAKE IT YOURS</div>
+            <h2 id="settingsTitle">Practice settings</h2>
+          </div>
+          <button
+            class="quiet-button"
+            id="closeSettings"
+            aria-label="Close settings"
+          >
+            ×
+          </button>
+        </div>
+        <section class="settings-section daily-setting">
+          <div class="settings-section-heading"><h3>Daily practice</h3><span>01</span></div>
+          <small id="goalMessage">15 minutes for you.</small>
+          <p class="goal-detail" id="goalSubmessage">One round at a time. We’ll keep track.</p>
+          <div class="goal-progress"><span id="goalRing"></span></div>
+          <div class="goal-foot"><span><i class="goal-dot"></i><span id="goalStatus">Timer starts when you type</span></span><span id="goalPercent">0%</span></div>
+          <small class="goal-setting-label">Choose a daily goal</small>
+          <div class="goal-choices" id="dailyGoalChoices">
+            <button data-value="5">5 min</button><button data-value="10">10 min</button><button class="selected" data-value="15">15 min</button><button data-value="20">20 min</button>
+          </div>
+        </section>
+        <section class="settings-section appearance-setting">
+          <div class="settings-section-heading"><h3>Color and text</h3><span>02</span></div>
+          <p class="settings-section-note">Soft color pairs, picked to feel easy on the eyes.</p>
+          <div class="palette-grid" id="paletteChoices" role="group" aria-label="Choose a color palette">
+            <button class="palette-choice" type="button" data-palette="garden" aria-pressed="true"><span class="palette-copy"><strong>Moss garden</strong><small>Leaf green · warm cream</small></span><span class="palette-pair"><i style="--swatch:#52745d"></i><i style="--swatch:#e8eee2"></i></span></button>
+            <button class="palette-choice" type="button" data-palette="petal" aria-pressed="false"><span class="palette-copy"><strong>Soft petal</strong><small>Berry pink · blush</small></span><span class="palette-pair"><i style="--swatch:#bb6683"></i><i style="--swatch:#f4e3e9"></i></span></button>
+            <button class="palette-choice" type="button" data-palette="tide" aria-pressed="false"><span class="palette-copy"><strong>Quiet tide</strong><small>Sea blue · mist</small></span><span class="palette-pair"><i style="--swatch:#54829a"></i><i style="--swatch:#e1edf0"></i></span></button>
+            <button class="palette-choice" type="button" data-palette="honey" aria-pressed="false"><span class="palette-copy"><strong>Honey oat</strong><small>Amber · oat milk</small></span><span class="palette-pair"><i style="--swatch:#a7793f"></i><i style="--swatch:#f1eadb"></i></span></button>
+            <button class="palette-choice" type="button" data-palette="lavender" aria-pressed="false"><span class="palette-copy"><strong>Heather dusk</strong><small>Heather · lilac grey</small></span><span class="palette-pair"><i style="--swatch:#836d9a"></i><i style="--swatch:#ebe6f0"></i></span></button>
+          </div>
+          <label class="setting-row text-size-setting"><span><strong>Practice text size</strong><small>Adjust the passage to your eyes</small></span><select id="fontSetting"><option value="18">Comfortable</option><option value="20">Large</option><option value="23">Extra large</option></select></label>
+        </section>
+        <section class="settings-section sound-setting">
+          <div class="settings-section-heading"><h3>Typing sounds</h3><span>03</span></div>
+          <label class="setting-row"><span><strong>Sound effects</strong><small>Hear a soft sound with each key</small></span><input type="checkbox" id="soundSetting"><i class="switch"></i></label>
+          <div class="sound-options" id="soundOptions">
+            <label for="soundStyleSetting">Choose a sound</label>
+            <div class="sound-choice-row"><select id="soundStyleSetting"><option value="soft-click">Soft click</option><option value="soft-hit">Soft hit</option><option value="mechanical">Mechanical</option><option value="hard-click">Hard click</option></select><button class="secondary-button" id="previewSound" type="button">Preview</button></div>
+            <label class="volume-row" for="soundVolumeSetting"><span>Sound volume</span><input type="range" id="soundVolumeSetting" min="0" max="100" value="60"><output id="soundVolumeValue">60%</output></label>
+          </div>
+        </section>
+        <section class="settings-section music-setting">
+          <div class="settings-section-heading"><h3>Background music</h3><span>04</span></div>
+          <label class="setting-row"><span><strong>Practice music</strong><small>A quiet loop while you type</small></span><input type="checkbox" id="musicSetting"><i class="switch"></i></label>
+          <label class="volume-row music-volume-row" for="musicVolumeSetting"><span>Music volume</span><input type="range" id="musicVolumeSetting" min="0" max="100" value="25"><output id="musicVolumeValue">25%</output></label>
+        </section>
+        <section class="settings-section extra-setting">
+          <div class="settings-section-heading"><h3>More preferences</h3><span>05</span></div>
+          <label class="setting-row"><span><strong>Show live stats</strong><small>Speed and accuracy while typing</small></span><input type="checkbox" id="liveSetting" checked><i class="switch"></i></label>
+        </section>
+        <div class="settings-tip">
+          <span>↗</span>
+          <p>
+            Practice stays saved in this browser. Sign in to sync your rounds
+            and streak.
+          </p>
+        </div>
+      </aside>
+      <div class="scrim" id="scrim"></div>
+      <div class="toast" id="toast" role="status"></div>
+    </div>
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>

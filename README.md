@@ -1,45 +1,41 @@
 # Type Monster
 
-A responsive typing-practice website with local progress tracking and optional Supabase sign-in and sync.
+Type Monster is a responsive typing practice website for building speed, accuracy, and touch-typing habits. Visitors can practice as guests, with progress stored in their browser. Each signed-in account also gets its own browser storage scope; optional Supabase sign-in syncs that account's practice history and preferences across devices.
 
-## Project layout
+## Features
+
+- **Practice:** Timed, Words, Free type, and Quote modes; configurable round length and word count; optional uppercase, punctuation, number, and letter-focus settings.
+- **Daily practice:** Set a daily goal, track practice time, and maintain a streak.
+- **Learn:** Guided home, top, and bottom row lessons with finger-color keyboard guidance.
+- **Progress:** Review recent rounds, unique speeds, accuracy, and pace trends.
+- **Personalization:** Color themes, passage size, four typing sounds with volume control, and background music with volume control.
+- **Responsive layout:** Works on desktop, tablet, and mobile screens.
+
+## Pages
+
+The navigation follows the practice flow: **Practice → Learn → Progress**.
+
+## Deploy to Vercel
+
+1. Push this repository to GitHub and import it as a project in Vercel.
+2. Use the included Vite settings: build command `npm run build`, output directory `dist`.
+3. Deploy. Vercel applies the security headers in `vercel.json`.
+
+Practice works without account credentials. To enable sign-in and cloud sync:
+
+1. Create a Supabase project and run [`supabase/schema.sql`](supabase/schema.sql) in its SQL Editor. The schema enables row-level security and limits each account to its own records.
+2. In Vercel **Project Settings → Environment Variables**, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` for the environments you deploy.
+3. In Supabase **Authentication → URL Configuration**, add your Vercel production URL (and any preview URLs you use) to the allowed redirect URLs.
+4. Redeploy so the build can include the configured public project URL and publishable key.
+
+The Supabase publishable key is intended for browser use; database access is protected by the schema's row-level security policies. On a browser's first sign-in, its guest progress moves into that account and the guest profile resets; each signed-in account then has its own local data scope. Never put a Supabase secret or `service_role` key in a `VITE_*` variable or client-side code.
+
+## Project structure
 
 ```text
-assets/              Hand-drawn logo
-src/                 Website JavaScript and styles
-supabase/            Browser client, RLS schema, and setup notes
-index.html           Vite HTML entry point
-.env.example         Safe environment-variable template
+assets/       Brand icons and practice audio
+src/          Website behavior and styles
+supabase/     Browser client and RLS-protected database schema
+index.html    App markup and page structure
+vercel.json   Vercel build settings and security headers
 ```
-
-Supabase provides the app's backend. There is no separate Node API server; the browser uses only the Supabase project URL and publishable key, while row-level security restricts database access to each signed-in user.
-
-## Run locally
-
-Requires Node.js 22.12 or newer.
-
-```sh
-npm install
-cp .env.example .env.local
-npm run dev
-```
-
-Add the project URL and publishable key to `.env.local`. See [Supabase setup](supabase/README.md) for the database schema, sign-in redirect configuration, and Vercel environment variables. Never put a Supabase secret or `service_role` key in the browser or a `VITE_` variable.
-
-## Build    
-
-```sh
-npm run build
-npm run preview
-```
-
-Vite writes the production site to `dist/`. The lockfile is committed so installs use reproducible dependency versions.
-
-## Practice features
-
-- Timed rounds (30 seconds by default), word-count, quote, and free-type modes.
-- A separate daily-practice goal, saved streaks, and results after each completed round.
-- Letter-focused paragraphs with optional capitalization and punctuation.
-- Touch-typing lessons and per-round speed and accuracy history.
-- Local-first storage with optional account sync through Supabase.
-# TypeMonster

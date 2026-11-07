@@ -1,0 +1,22 @@
+# Dependencies and generated builds
+node_modules/
+dist/
+coverage/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+.vercel/
+
+# Supabase local state
+supabase/.branches/
+supabase/.temp/
+
+# Operating system and package-manager noise
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
