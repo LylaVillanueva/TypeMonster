@@ -26,6 +26,7 @@
           <button class="daily-header-control" id="goalControl" aria-label="Start daily practice"><span class="goal-header-icon" id="goalControlIcon">▶</span><span class="goal-header-time"><strong id="goalClock">15:00</strong><small id="goalClockLabel">LEFT TODAY</small></span><time id="todayLabel" class="daily-header-date"></time><span class="goal-header-label" id="goalControlLabel">Start a round</span></button>
           <button class="quiet-button" id="themeToggle" aria-label="Switch color theme" title="Switch color theme">◐</button>
           <button class="quiet-button" id="settingsToggle" aria-label="Open settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h5m4 0h7M4 17h9m4 0h3"/><circle cx="11" cy="7" r="2"/><circle cx="15" cy="17" r="2"/></svg></button>
+          <button class="help-button" id="feedbackButton" type="button" aria-haspopup="dialog" aria-controls="feedbackOverlay"><span class="help-mark" aria-hidden="true">?</span><span>Help & feedback</span></button>
           <button class="account-button" id="profileButton" title="Guest profile · click to sign in"><span class="avatar">M</span><span>Guest</span><span class="chevron">⌄</span></button>
         </div>
       </header>
@@ -372,6 +373,31 @@
           <button class="secondary-button hidden" id="signOutButton">
             Sign out</button
           >
+        </section>
+      </div>
+      <div class="feedback-overlay hidden" id="feedbackOverlay" aria-hidden="true">
+        <div class="feedback-backdrop" id="feedbackBackdrop"></div>
+        <section class="feedback-dialog" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle" aria-describedby="feedbackDescription">
+          <button class="result-close" id="closeFeedback" type="button" aria-label="Close help and feedback">×</button>
+          <div class="eyebrow">HELP & FEEDBACK</div>
+          <h2 id="feedbackTitle">We’re listening.</h2>
+          <p class="feedback-description" id="feedbackDescription">Share a suggestion, report a problem, or tell us what would make practice better. No account needed.</p>
+          <form id="feedbackForm">
+            <label for="feedbackCategory">What is this about?</label>
+            <select id="feedbackCategory" name="category" required>
+              <option value="suggestion">A suggestion</option>
+              <option value="problem">A problem</option>
+              <option value="other">Something else</option>
+            </select>
+            <label for="feedbackMessageInput">Your comment</label>
+            <textarea id="feedbackMessageInput" name="message" rows="5" minlength="8" maxlength="2000" required placeholder="Tell us what you think…" aria-describedby="feedbackPrivacy feedbackCount"></textarea>
+            <div class="feedback-meta"><span id="feedbackPrivacy">Leave email blank to stay anonymous. Don’t include passwords or private details.</span><output id="feedbackCount" for="feedbackMessageInput">0 / 2000</output></div>
+            <label for="feedbackEmail">Email for a reply <span>(optional)</span></label>
+            <input id="feedbackEmail" name="email" type="email" maxlength="254" autocomplete="email" placeholder="you@example.com" />
+            <div class="feedback-honeypot" aria-hidden="true"><label for="feedbackWebsite">Leave this field empty</label><input id="feedbackWebsite" name="website" tabindex="-1" autocomplete="off" /></div>
+            <button class="result-next feedback-submit" type="submit" id="feedbackSubmit">Send feedback <span>→</span></button>
+          </form>
+          <p class="feedback-status" id="feedbackStatus" role="status" aria-live="polite"></p>
         </section>
       </div>
       <aside

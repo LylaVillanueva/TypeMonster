@@ -8,6 +8,7 @@ Type Monster is a responsive typing practice website for building speed, accurac
 - **Daily practice:** Set a daily goal, track practice time, and maintain a streak.
 - **Learn:** Guided home, top, and bottom row lessons with finger-color keyboard guidance.
 - **Progress:** Review recent rounds, unique speeds, accuracy, and pace trends.
+- **Help & feedback:** Send a suggestion or report a problem without creating an account.
 - **Personalization:** Color themes, passage size, four typing sounds with volume control, and background music with volume control.
 - **Responsive layout:** Works on desktop, tablet, and mobile screens.
 
@@ -23,7 +24,8 @@ The navigation follows the practice flow: **Practice → Learn → Progress**.
 
 Practice works without account credentials. To enable sign-in and cloud sync:
 
-1. Create a Supabase project and run [`supabase/schema.sql`](supabase/schema.sql) in its SQL Editor. The schema enables row-level security and limits each account to its own records.
+1. Create a Supabase project and run [`supabase/schema.sql`](supabase/schema.sql) in its SQL Editor. The schema enables row-level security, limits account data to its owner, and lets guests submit feedback without reading feedback records.
+   If you already created the tables with an earlier version, also run [`supabase/align_column_types.sql`](supabase/align_column_types.sql) to align the bounded counters with the diagram's `int2` types.
 2. In Vercel **Project Settings → Environment Variables**, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` for the environments you deploy.
 3. In Supabase **Authentication → URL Configuration**, add your Vercel production URL (and any preview URLs you use) to the allowed redirect URLs.
 4. Redeploy so the build can include the configured public project URL and publishable key.
@@ -35,7 +37,7 @@ The Supabase publishable key is intended for browser use; database access is pro
 ```text
 assets/       Brand icons and practice audio
 src/          Website behavior and styles
-supabase/     Browser client and RLS-protected database schema
+supabase/     Browser client, RLS-protected schema, and type-alignment migration
 index.html    App markup and page structure
 vercel.json   Vercel build settings and security headers
 ```

@@ -1229,6 +1229,21 @@ import { supabase } from "../supabase/client.js";
     $("#authOverlay").classList.add("hidden");
     $("#authOverlay").setAttribute("aria-hidden", "true");
   }
+  let feedbackReturnFocus = null;
+  function openFeedback() {
+    feedbackReturnFocus = document.activeElement;
+    $("#feedbackStatus").textContent = "";
+    $("#feedbackStatus").classList.remove("error");
+    $("#feedbackEmail").value = currentUser?.email || "";
+    $("#feedbackOverlay").classList.remove("hidden");
+    $("#feedbackOverlay").setAttribute("aria-hidden", "false");
+    $("#feedbackMessageInput").focus();
+  }
+  function closeFeedback() {
+    $("#feedbackOverlay").classList.add("hidden");
+    $("#feedbackOverlay").setAttribute("aria-hidden", "true");
+    if (feedbackReturnFocus instanceof HTMLElement) feedbackReturnFocus.focus();
+  }
 
   function dailyControl() {
     if (
@@ -1378,8 +1393,12 @@ import { supabase } from "../supabase/client.js";
   });
   document.addEventListener("keydown", (event) => {
     if (event.code !== "Space") return;
+    const textEntry = event.target instanceof HTMLElement &&
+      event.target.matches('input:not([type="range"]),textarea,select,[contenteditable="true"]');
+    if (textEntry) return;
     const popupOpen = !$("#resultOverlay").classList.contains("hidden") ||
       !$("#authOverlay").classList.contains("hidden") ||
+      !$("#feedbackOverlay").classList.contains("hidden") ||
       $("#settingsPanel").classList.contains("open");
     if (popupOpen) {
       event.preventDefault();
@@ -1399,6 +1418,10 @@ import { supabase } from "../supabase/client.js";
       !$("#authOverlay").classList.contains("hidden")
     ) {
       closeAuth();
+      return;
+    }
+    if (event.key === "Escape" && !$("#feedbackOverlay").classList.contains("hidden")) {
+      closeFeedback();
       return;
     }
   });
@@ -1448,6 +1471,7 @@ import { supabase } from "../supabase/client.js";
     const practiceAvailable = !$("#practiceView").classList.contains("hidden") &&
       $("#settingsPanel").classList.contains("open") === false &&
       $("#authOverlay").classList.contains("hidden") &&
+      $("#feedbackOverlay").classList.contains("hidden") &&
       $("#resultOverlay").classList.contains("hidden");
     const editing =
       event.target instanceof HTMLElement &&
@@ -1585,6 +1609,73 @@ import { supabase } from "../supabase/client.js";
     notify(`Daily goal set to ${data.goalMinutes} minutes`);
   });
   $("#profileButton").addEventListener("click", openAuth);
+  $("#feedbackButton").addEventListener("click", openFeedback);
+  $("#closeFeedback").addEventListener("click", closeFeedback);
+  $("#feedbackBackdrop").addEventListener("click", closeFeedback);
+  $("#feedbackMessageInput").addEventListener("input", (event) => {
+    $("#feedbackCount").textContent = `${event.currentTarget.value.length} / 2000`;
+  });
+  $("#feedbackForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const message = $("#feedbackMessageInput").value.trim();
+    const category = $("#feedbackCategory").value;
+    const contactEmail = $("#feedbackEmail").value.trim();
+    const button = $("#feedbackSubmit");
+    const status = $("#feedbackStatus");
+    status.classList.remove("error");
+    if ($("#feedbackWebsite").value.trim()) {
+      form.reset();
+      $("#feedbackCount").textContent = "0 / 2000";
+      status.textContent = "Thanks for sharing your feedback.";
+      return;
+    }
+    if (!supabase) {
+      status.textContent = "Feedback isn’t available right now. Please try again later.";
+      status.classList.add("error");
+      return;
+    }
+    button.disabled = true;
+    button.textContent = "Sending…";
+    status.textContent = "";
+    let submissionError = null;
+    try {
+      const { error } = await supabase.from("user_feedback").insert({
+        user_id: currentUser?.id || null,
+        category,
+        message,
+        contact_email: contactEmail || null,
+      });
+      submissionError = error;
+    } catch {
+      submissionError = true;
+    } finally {
+      button.disabled = false;
+      button.innerHTML = "Send feedback <span>→</span>";
+    }
+    if (submissionError) {
+      console.warn("Feedback submission failed:", submissionError.code || "request_error");
+      status.textContent = "We couldn’t send that just now. Please check your connection and try again.";
+      status.classList.add("error");
+      return;
+    }
+    form.reset();
+    $("#feedbackCount").textContent = "0 / 2000";
+    status.textContent = "Thanks — your note was sent. We appreciate you taking the time.";
+  });
+  $("#feedbackOverlay").addEventListener("keydown", (event) => {
+    if (event.key !== "Tab") return;
+    const focusable = [...$("#feedbackOverlay").querySelectorAll('button:not(:disabled),input:not([tabindex="-1"]),select,textarea')];
+    if (!focusable.length) return;
+    const first = focusable[0], last = focusable.at(-1);
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
   $("#clearHistory").addEventListener("click", () => {
     data.history = [];
     persist();
