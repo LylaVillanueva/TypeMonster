@@ -783,12 +783,12 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     overlay.setAttribute("aria-hidden", "false");
     $("#resultCloseAction").focus();
   }
-  function closeResult() {
+  function closeResult(restoreTypingFocus = true) {
     const overlay = $("#resultOverlay");
     overlay.classList.add("hidden");
     overlay.setAttribute("aria-hidden", "true");
     if (finished) restart(true, false);
-    else inputEl.focus();
+    else if (restoreTypingFocus) inputEl.focus();
   }
   function restart(focus = true, newPassage = true) {
     delete data.modeDrafts[mode];
@@ -803,7 +803,7 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     roundStartedAt = 0;
     elapsed = 0;
     chartPoints = [];
-    closeResult();
+    closeResult(false);
     if (newPassage || !target || targetMode !== mode) {
       target = makeTarget(mode);
       targetMode = mode;
@@ -826,7 +826,7 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     if (focus) {
       inputEl.focus();
       $("#typingArea").classList.add("focused");
-    }
+    } else inputEl.blur();
   }
   function updateDashboard(updateProgress = true) {
     const best = Math.max(0, ...data.history.map((row) => Number(row.wpm) || 0));
@@ -1434,9 +1434,15 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
       return;
     }
   });
-  $("#typingArea").addEventListener("click", () => inputEl.focus());
+  $("#typingArea").addEventListener("click", () => {
+    if ($("#practiceView").classList.contains("hidden") || finished) return;
+    inputEl.focus({ preventScroll: true });
+    if (document.activeElement === inputEl)
+      $("#typingArea").classList.add("focused");
+  });
   inputEl.addEventListener("focus", () => {
-    $("#typingArea").classList.add("focused");
+    if (!$("#practiceView").classList.contains("hidden") && !finished)
+      $("#typingArea").classList.add("focused");
     if (!roundRunning && !finished) $("#roundStatus").textContent = "Ready when you are";
   });
   inputEl.addEventListener("blur", (event) => {
