@@ -1786,7 +1786,8 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
   );
   renderText();
   if (!$("#practiceView").classList.contains("hidden")) {
-    requestAnimationFrame(() => inputEl.focus({ preventScroll: true }));
+    inputEl.focus({ preventScroll: true });
+    $("#typingArea").classList.add("focused");
   }
   if (supabase) {
     let lastSyncedUserId = null;
