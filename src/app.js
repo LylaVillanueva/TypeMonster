@@ -94,6 +94,12 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     "the of and to a in is you that it he was for on are as with his they I at be this have from or one had by word but not what all were we when your can said there use an each which she do how their if will up other about out many then them these so some her would make like him into time has look two more write go see number no way could people my than first water been call who oil its now find long down day did get come made may part over new sound take only little work know place year live me back give most very after thing our just name good sentence man think say great where help through much before line right too mean old any same tell boy follow came want show also around form three small set put end why again turn here few off went well because picture try kind hand school still must learn should every near add food between own below keep tree never start city eyes light thought head under story saw left few while along might close something seem next hard open example begin life always those both paper together got group often run important until children side feet car mile night walk white sea began grow took river four carry state once book hear stop without second later enough eat face watch far real almost let above girl sometimes mountain cut young talk soon list song being leave family body music color stand sun questions fish area mark dog horse birds problem complete room knew since ever piece told usually friends easy heard order red door sure become top ship across today during short better best low hours black products happened whole measure remember early waves reached listen wind rock space covered fast several hold himself toward step morning passed true hundred pattern table north slowly money map farm pulled draw voice seen cold cried plan notice south sing ground fall king town unit figure certain field travel wood fire upon done road half ten fly gave box finally wait correct oh quickly person became shown minutes strong verb stars front feel fact street decided contain course surface produce building ocean class note nothing rest carefully scientists inside wheels stay green known island week less machine base ago stood plane system behind ran round boat game force brought understand warm common bring explain dry though language shape deep thousands yes clear filled heat full hot check object rule among noun power cannot able six size dark ball material special heavy fine pair circle include built can matter square bill felt suddenly test direction center farmers ready anything divided general energy subject moon region return believe dance members picked simple cells paint mind love cause rain exercise train blue wish drop developed window difference distance heart sum summer wall forest probably legs sat main winter wide written length reason kept interest arms brother race present beautiful store job edge past sign record finished discovered wild happy beside gone sky grass million west lay weather root instruments meet third months paragraph raised represent soft whether clothes flowers shall teacher held describe drive cross speak solve appear metal son either ice sleep village factors result jumped snow ride care floor hill pushed baby buy century outside everything tall already instead phrase soil bed copy free hope spring case laughed nation quite type themselves temperature bright lead everyone method section lake iron within dictionary hair age semester".split(
       /\s+/,
     );
+  // Extra vocabulary for letter drills. The common-word list above has almost
+  // nothing for letters like q, z, x or j, so drills pull from this as well.
+  const practiceWords =
+    "quick quiet quite quote quality question quarter queen quest queue quilt quiz quack quartz quarrel quench query squirrel equal require request acquire square liquid frequent sequence unique technique antique mosquito banquet bouquet equip zero zone zoo zebra zip zinc zest zigzag zoom zeal size prize amazing crazy dozen freeze frozen graze gaze lazy maze puzzle razor sneeze breeze blaze buzz fizz jazz pizza topaz wizard organize realize recognize horizon bronze citizen box fox six mix fix wax tax relax exact example excellent exercise explain explore express extra extreme excite expect expert expand axis maximum taxi toxic complex index next text mixture exit oxygen jump just join joy job jar jam jet jog joke judge juice jungle journey jewel jacket jelly jigsaw enjoy object project subject reject adjust major banjo ninja keep key kind king kitchen knock knee knife kite kettle kayak keen kick kid kiss kit knit knot lake make take walk work park book look milk sky skill skin ask risk task desk market pocket rocket basket blanket very voice value visit view vine village violet vivid vast vote vase van vacuum valley vapor velvet venture verb victory vital volume volcano voyage have give live love move every river silver over never travel gravel water wall want warm wash watch wave weak wear weather week weight well west wheel white wide wild wind window winter wish wonder wood world worry wrong wrap wrist yes yellow yard yarn yawn yell young youth yoga yogurt yield yesterday happy hobby baby candy fancy story body play stay bubble bridge brave brown bright butter bottle button balance bamboo forest flower friend family fabric feather finger flame flavor fresh frog funny future garden gentle giant glass green group guitar ginger gather gift grape grass harbor heart honey horse house hammer hello hunt hungry humble paper pencil pepper pillow planet purple plant picnic pretty magic melody memory mirror monkey moon morning mountain muffin music daily dance danger dark dinner dolphin dragon dream drum duck during candle castle circle cloud coffee copper cotton country cricket crystal curious lamp ladder lemon letter light lizard lunch lovely lantern narrow nature needle neighbor night noodle north notice nurse rabbit rainbow ribbon robot round rubber ruler running sailor salad season secret shadow simple smile soccer street sugar summer table tiger ticket tomato tower treasure turtle twenty thunder apple animal aunt autumn eagle earth elbow engine island insect iron ocean orange otter outside umbrella uncle usual".split(
+      /\s+/,
+    );
   const quotePool = [
     "Ang Lupa ay para sa mga Pilipino at hindi para sa dayuhan! Tutulan ang PX SILICA! TUNAY NA REPORMA PARA SA MAGSASAKA!",
     "The secret of getting ahead is getting started.",
@@ -347,10 +353,35 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
   function randomWord() {
     return wordBank[Math.floor(Math.random() * wordBank.length)];
   }
-  function focusedWord() {
-    const letters = data.focusLetters.map((letter) => letter.toLowerCase());
-    const matches = letters.length ? wordBank.filter((word) => letters.some((letter) => word.toLowerCase().includes(letter))) : [];
-    return matches.length && Math.random() < 0.8 ? matches[Math.floor(Math.random() * matches.length)] : randomWord();
+  // Builds a word picker for one passage. With focus letters chosen, about 90%
+  // of words contain one of them, cycling through the letters so each gets a
+  // fair share, preferring words that contain the letter more than once, and
+  // avoiding repeats until the pool runs out.
+  function makeWordPicker() {
+    const letters = [...new Set(data.focusLetters.map((letter) => letter.toLowerCase()))];
+    if (!letters.length) return randomWord;
+    const all = [...new Set([...wordBank, ...practiceWords].map((w) => w.toLowerCase()))];
+    const pools = letters
+      .map((letter) => ({ letter, words: all.filter((word) => word.includes(letter)) }))
+      .filter((pool) => pool.words.length);
+    if (!pools.length) return randomWord;
+    const occurrences = (word, letter) => word.split(letter).length - 1;
+    const recent = [];
+    let turn = Math.floor(Math.random() * pools.length);
+    return () => {
+      if (Math.random() > 0.9) return randomWord();
+      const { letter, words } = pools[turn++ % pools.length];
+      let best = "";
+      for (let tries = 0; tries < 6; tries++) {
+        const word = words[Math.floor(Math.random() * words.length)];
+        if (recent.includes(word) && words.length > recent.length) continue;
+        if (!best || occurrences(word, letter) > occurrences(best, letter)) best = word;
+      }
+      best = best || words[Math.floor(Math.random() * words.length)];
+      recent.push(best);
+      if (recent.length > Math.min(12, words.length - 1)) recent.shift();
+      return best;
+    };
   }
   function applyCase(text) {
     if (!data.uppercase) return text.toLowerCase();
@@ -358,8 +389,9 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
   }
   function makeWords(count) {
     const result = [];
+    const pickWord = makeWordPicker();
     for (let i = 0; i < count; i++) {
-      let word = focusedWord();
+      let word = pickWord();
       if (punctuation && i > 1 && Math.random() < 0.18)
         word += [",", ".", ";", "?"][Math.floor(Math.random() * 4)];
       if (numbers && Math.random() < 0.09) word = String(Math.floor(Math.random() * 100));
@@ -368,6 +400,9 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     return applyCase(result.join(" "));
   }
   function makeNaturalParagraph(focused = false) {
+    // A fixed sentence set can't hold much of a rare letter, so letter drills
+    // are built from words instead.
+    if (focused && data.focusLetters.length) return makeWords(45);
     const count = 3 + Math.floor(Math.random() * 3);
     const selected = focused && data.focusLetters.length ? makeFocusSentences(count) : [...naturalSentences].sort(() => Math.random() - 0.5).slice(0, count);
     let passage = selected.join(" ");
@@ -513,8 +548,11 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     const minutes = currentRoundMs() / 60000;
     if (minutes <= 0) return { net: 0, raw: 0 };
     const gross = typedAttempts / 5 / minutes;
-    const errors = Math.max(0, typedAttempts - correctAttempts);
-    return { net: Math.round(gross - errors / minutes), raw: Math.round(gross) };
+    // Net speed counts only correct characters (5 per word), so it can never
+    // go below zero. Hold it at 0 for the first 2 seconds so a few early
+    // keystrokes don't produce a wildly inflated reading.
+    const net = minutes < 2 / 60 ? 0 : correctAttempts / 5 / minutes;
+    return { net: Math.round(net), raw: Math.round(gross) };
   }
   function currentRoundMs() {
     return (

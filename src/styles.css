@@ -5091,3 +5091,111 @@ select:focus-visible {
     text-align: right;
   }
 }
+
+/* ==========================================================================
+   Practice layout (final pass)
+   Earlier blocks above define the typing area several times over with
+   !important. This block is the one that wins: stats sit directly above the
+   passage, the passage is left-aligned at a readable line length, and the
+   "New passage" button is secondary so it no longer outshouts the text.
+   ========================================================================== */
+.practice-view .typing-area {
+  min-height: clamp(260px, 40vh, 420px) !important;
+  padding: 22px clamp(8px, 1.3vw, 24px) 40px !important;
+  justify-content: flex-start;
+}
+.practice-view .live-stats {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start !important;
+  gap: clamp(20px, 3vw, 36px);
+  margin: 0 auto 22px !important;
+  width: 100%;
+  max-width: 880px;
+}
+.practice-view .live-stats .stat-label {
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+}
+.practice-view .live-stats strong {
+  font-size: 22px;
+}
+.practice-view .live-stats strong span {
+  font-size: 12px;
+}
+/* Status text joins the stats row instead of floating in the corner. */
+.practice-view .round-status {
+  position: static;
+  margin: 0 0 3px auto;
+  align-self: flex-end;
+  font-size: 12px;
+  color: var(--muted);
+}
+.practice-view .text-display {
+  width: 100%;
+  max-width: 880px !important;
+  margin-inline: auto;
+  min-height: 0;
+  text-align: left !important;
+  text-align-last: auto;
+  text-justify: auto;
+  font-size: clamp(18px, 1.6vw, 24px);
+  line-height: 1.85 !important;
+  letter-spacing: 0;
+  /* Untyped text must stay readable: roughly 4.5:1 on the card colour. */
+  color: color-mix(in srgb, var(--ink) 58%, var(--paper));
+}
+.practice-view .text-display .char.correct {
+  color: var(--ink);
+}
+/* Mistakes are marked by an underline as well as colour. */
+.practice-view .text-display .char.incorrect {
+  color: var(--coral);
+  background: color-mix(in srgb, var(--coral) 18%, transparent);
+  text-decoration: underline wavy;
+  text-underline-offset: 4px;
+}
+/* "New passage" is a secondary action; the passage is the hero. */
+.practice-view .restart-button {
+  background: var(--paper);
+  color: var(--green-deep);
+  border-color: var(--line);
+}
+.practice-view .restart-button:hover {
+  background: var(--green-soft);
+  border-color: var(--green);
+  color: var(--green-deep);
+}
+@media (max-width: 650px) {
+  .practice-view .typing-area {
+    min-height: 40vh !important;
+    padding-inline: 4px !important;
+  }
+  .practice-view .live-stats {
+    flex-wrap: wrap;
+    gap: 14px 22px;
+  }
+  .practice-view .round-status {
+    flex-basis: 100%;
+    margin: 0;
+    text-align: left;
+  }
+  .practice-view .text-display {
+    font-size: 19px;
+  }
+}
+
+/* Practice-letter highlight: colour and weight only. Underlines are reserved
+   for typing mistakes so the two signals never get confused. */
+.practice-view .text-display .char.focus-letter {
+  text-decoration: none;
+  color: var(--green);
+  font-weight: 700;
+}
+/* If a practice letter is typed wrong, the mistake styling wins. */
+.practice-view .text-display .char.focus-letter.incorrect {
+  color: var(--coral);
+  text-decoration: underline wavy;
+  text-underline-offset: 4px;
+}
