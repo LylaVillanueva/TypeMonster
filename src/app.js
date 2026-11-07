@@ -29,13 +29,13 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     musicEnabled: Boolean(oldData.musicEnabled),
     musicVolume: Number.isFinite(Number(oldData.musicVolume)) ? Math.min(1, Math.max(0, Number(oldData.musicVolume))) : 0.25,
     showLive: oldData.showLive !== false,
-    font: [18, 20, 23].includes(Number(oldData.font))
+    font: [18, 20, 23, 27, 32].includes(Number(oldData.font))
       ? Number(oldData.font)
       : Number(oldData.font) === 24
         ? 20
         : Number(oldData.font) === 28
-          ? 23
-          : 18,
+          ? 27
+          : 23,
     roundSeconds: Number(oldData.roundSeconds) || 30,
     goalMinutes: Number(oldData.goalMinutes) || 15,
     focusLetters: Array.isArray(oldData.focusLetters)
@@ -222,7 +222,7 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     correctAttempts = 0;
   let focusPromptActive = false,
     toastTimer,
-    streakCelebrationTimer,
+    pendingStreakCelebration = null,
     focusFilterTimer = null,
     lastTickAt = 0,
     lastPersistSecond = -1;
@@ -246,7 +246,7 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
       ...JSON.parse(JSON.stringify(defaultDataSnapshot)),
       history: [], theme: "light", colorPalette: "garden", sound: false,
       soundStyle: "soft-click", soundVolume: 0.6, musicEnabled: false,
-      musicVolume: 0.25, showLive: true, font: 18, roundSeconds: 30,
+      musicVolume: 0.25, showLive: true, font: 23, roundSeconds: 30,
       goalMinutes: 15, focusLetters: [], uppercase: false, numbers: false,
       punctuation: false, letterPunctuation: false, dailyTotals: {},
       dailyGoals: {}, practiceDate: "", streak: 0, lastPractice: "",
@@ -291,7 +291,7 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     data.punctuation = Boolean(data.punctuation ?? data.letterPunctuation);
     data.letterPunctuation = data.punctuation;
     data.streak = Math.max(0, Number(data.streak) || 0);
-    data.font = [18, 20, 23].includes(Number(data.font)) ? Number(data.font) : 18;
+    data.font = [18, 20, 23, 27, 32].includes(Number(data.font)) ? Number(data.font) : 23;
     data.goalMinutes = [5, 10, 15, 20].includes(Number(data.goalMinutes)) ? Number(data.goalMinutes) : 15;
     data.soundStyle = ["soft-click", "soft-hit", "mechanical", "hard-click"].includes(data.soundStyle) ? data.soundStyle : "soft-click";
     data.soundVolume = Number.isFinite(Number(data.soundVolume)) ? Math.min(1, Math.max(0, Number(data.soundVolume))) : 0.6;
@@ -517,14 +517,36 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
   function dailyMilliseconds() {
     return Number(data.dailyTotals[todayKey()]) || 0;
   }
-  function showStreakCelebration(streak) {
+  function showStreakCelebration(streak, previousStreak) {
     const popup = $("#streakCelebration");
-    $("#streakCelebrationCount").textContent = String(streak);
-    popup.classList.remove("show");
-    void popup.offsetWidth;
+    const count = $("#streakCelebrationCount");
+    $("#streakValue").textContent = String(streak);
+    count.textContent = String(previousStreak);
     popup.classList.add("show");
-    clearTimeout(streakCelebrationTimer);
-    streakCelebrationTimer = setTimeout(() => popup.classList.remove("show"), 2800);
+    popup.setAttribute("aria-hidden", "false");
+    $("#closeStreakCelebration").focus();
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      count.textContent = String(streak);
+      return;
+    }
+    const start = performance.now();
+    const duration = 650;
+    const animateCount = (now) => {
+      const progress = Math.min(1, (now - start) / duration);
+      const eased = 1 - (1 - progress) ** 3;
+      count.textContent = String(Math.round(previousStreak + (streak - previousStreak) * eased));
+      if (progress < 1) requestAnimationFrame(animateCount);
+    };
+    requestAnimationFrame(animateCount);
+  }
+  function closeStreakCelebration() {
+    const popup = $("#streakCelebration");
+    popup.classList.remove("show");
+    popup.setAttribute("aria-hidden", "true");
+    if (!$("#practiceView").classList.contains("hidden") && !finished) {
+      inputEl.focus({ preventScroll: true });
+      $("#typingArea").classList.add("focused");
+    }
   }
   function updateStreak() {
     const previousStreak = Number(data.streak) || 0;
@@ -543,7 +565,12 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
       cursor.setDate(cursor.getDate() - 1);
     }
     data.streak = streak;
-    if (todayHit && streak > previousStreak) showStreakCelebration(streak);
+    if (todayHit && streak > previousStreak) {
+      pendingStreakCelebration = {
+        from: pendingStreakCelebration?.from ?? previousStreak,
+        to: Math.max(pendingStreakCelebration?.to ?? 0, streak),
+      };
+    }
     data.lastPractice = todayHit
       ? today
       : (Number(data.dailyTotals[yesterday]) || 0) >=
@@ -601,7 +628,7 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
         : finished
           ? "Paused between rounds"
           : "Timer starts when you type";
-    $("#streakValue").textContent = data.streak;
+    $("#streakValue").textContent = String(pendingStreakCelebration?.from ?? data.streak);
   }
   function updateTimerLabel() {
     const ms = currentRoundMs();
@@ -801,6 +828,11 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     overlay.setAttribute("aria-hidden", "true");
     if (finished) restart(true, false);
     else if (restoreTypingFocus) inputEl.focus();
+    if (restoreTypingFocus && pendingStreakCelebration) {
+      const { from, to } = pendingStreakCelebration;
+      pendingStreakCelebration = null;
+      showStreakCelebration(to, from);
+    }
   }
   function restart(focus = true, newPassage = true) {
     delete data.modeDrafts[mode];
@@ -842,7 +874,7 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
   }
   function updateDashboard(updateProgress = true) {
     const best = Math.max(0, ...data.history.map((row) => Number(row.wpm) || 0));
-    $("#streakValue").textContent = data.streak;
+    $("#streakValue").textContent = String(pendingStreakCelebration?.from ?? data.streak);
     if (updateProgress) {
       $("#progressBest").textContent = best || "—";
       $("#progressTests").textContent = data.history.length;
@@ -1372,6 +1404,17 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
   $("#closeResult").addEventListener("click", closeResult);
   $("#resultCloseAction").addEventListener("click", closeResult);
   $("#resultBackdrop").addEventListener("click", closeResult);
+  $("#closeStreakCelebration").addEventListener("click", closeStreakCelebration);
+  $("#streakCelebration").addEventListener("keydown", (event) => {
+    if (event.key === "Escape" || event.code === "Space") {
+      event.preventDefault();
+      return;
+    }
+    if (event.key === "Tab") {
+      event.preventDefault();
+      $("#closeStreakCelebration").focus();
+    }
+  });
   $("#closeAuth").addEventListener("click", closeAuth);
   $("#authBackdrop").addEventListener("click", closeAuth);
   $("#authForm").addEventListener("submit", async (event) => {
@@ -1420,6 +1463,7 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     const popupOpen = !$("#resultOverlay").classList.contains("hidden") ||
       !$("#authOverlay").classList.contains("hidden") ||
       !$("#feedbackOverlay").classList.contains("hidden") ||
+      $("#streakCelebration").classList.contains("show") ||
       $("#settingsPanel").classList.contains("open");
     if (popupOpen) {
       event.preventDefault();
@@ -1427,6 +1471,13 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     }
   }, true);
   document.addEventListener("keydown", (event) => {
+    if (
+      event.key === "Escape" &&
+      $("#streakCelebration").classList.contains("show")
+    ) {
+      event.preventDefault();
+      return;
+    }
     if (
       event.key === "Escape" &&
       !$("#resultOverlay").classList.contains("hidden")
@@ -1499,6 +1550,7 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
       $("#settingsPanel").classList.contains("open") === false &&
       $("#authOverlay").classList.contains("hidden") &&
       $("#feedbackOverlay").classList.contains("hidden") &&
+      !$("#streakCelebration").classList.contains("show") &&
       $("#resultOverlay").classList.contains("hidden");
     const editing =
       event.target instanceof HTMLElement &&

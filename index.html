@@ -443,7 +443,7 @@
             <button class="palette-choice" type="button" data-palette="honey" aria-pressed="false"><span class="palette-copy"><strong>Honey oat</strong><small>Amber · oat milk</small></span><span class="palette-pair"><i style="--swatch:#a7793f"></i><i style="--swatch:#f1eadb"></i></span></button>
             <button class="palette-choice" type="button" data-palette="lavender" aria-pressed="false"><span class="palette-copy"><strong>Heather dusk</strong><small>Heather · lilac grey</small></span><span class="palette-pair"><i style="--swatch:#836d9a"></i><i style="--swatch:#ebe6f0"></i></span></button>
           </div>
-          <label class="setting-row text-size-setting"><span><strong>Practice text size</strong><small>Adjust the passage to your eyes</small></span><select id="fontSetting"><option value="18">Comfortable</option><option value="20">Large</option><option value="23">Extra large</option></select></label>
+          <label class="setting-row text-size-setting"><span><strong>Practice text size</strong><small>Adjust the passage to your eyes</small></span><select id="fontSetting"><option value="18">Small</option><option value="20">Medium</option><option value="23">Comfortable · default</option><option value="27">Large</option><option value="32">Extra large</option></select></label>
         </section>
         <section class="settings-section sound-setting">
           <div class="settings-section-heading"><h3>Typing sounds</h3><span>03</span></div>
@@ -472,9 +472,15 @@
         </div>
       </aside>
       <div class="scrim" id="scrim"></div>
-      <div class="streak-celebration" id="streakCelebration" role="status" aria-live="polite" aria-atomic="true">
-        <img src="./assets/streak.ico" alt="" aria-hidden="true">
-        <span><strong><b id="streakCelebrationCount">1</b> day streak</strong><small>Daily goal complete</small></span>
+      <div class="streak-celebration" id="streakCelebration" aria-hidden="true">
+        <div class="streak-celebration-backdrop" aria-hidden="true"></div>
+        <section class="streak-celebration-dialog" role="dialog" aria-modal="true" aria-labelledby="streakCelebrationTitle" aria-describedby="streakCelebrationNote">
+          <div class="streak-celebration-icon"><img src="./assets/streak.ico" alt="" aria-hidden="true"></div>
+          <div class="eyebrow">DAILY GOAL COMPLETE</div>
+          <h2 id="streakCelebrationTitle">Your streak grew!</h2>
+          <p id="streakCelebrationNote"><strong id="streakCelebrationCount">1</strong><span>day streak</span></p>
+          <button class="result-next" id="closeStreakCelebration" type="button">Keep going <span>→</span></button>
+        </section>
       </div>
       <div class="toast" id="toast" role="status"></div>
     </div>
