@@ -520,13 +520,6 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
         span.classList.add(input[i] === target[i] ? "correct" : "incorrect");
       else if (!finished && i === input.length)
         span.classList.add("current");
-      if (
-        focusPromptActive &&
-        i < input.length &&
-        input[i] === target[i] &&
-        data.focusLetters.includes(target[i].toLowerCase())
-      )
-        span.classList.add("focus-letter");
       span.textContent = target[i];
       fragment.appendChild(span);
     }

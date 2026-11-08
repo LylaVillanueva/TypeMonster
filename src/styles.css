@@ -169,13 +169,6 @@ h1 em, h2 em { font-style: normal; color: var(--green); }
   color: var(--ink);
 }
 .char.incorrect { color: var(--coral); background: #db89771e; border-radius: 2px; }
-.char.focus-letter {
-  color: var(--green);
-  text-decoration: underline;
-  text-decoration-color: #9fc285;
-  text-underline-offset: 5px;
-  text-decoration-thickness: 2px;
-}
 @keyframes blink {
   to {
     opacity: 0;
@@ -525,7 +518,6 @@ kbd {
 .round-status { position: absolute; right: 8px; top: 14px; }
 .text-display { line-height: 1.9 !important; color: var(--subtle); }
 .text-display .char.incorrect { color: var(--coral); background: #ed8c9b20; border-radius: 2px; }
-.text-display .char.focus-letter { color: var(--green); background: transparent; }
 
 /* Crop the hand-drawn monster to a small header mark. */
 .brand-mark {
@@ -2154,16 +2146,6 @@ select:focus-visible {
 }
 /* "New passage" is a secondary action; the passage is the hero. */
 .practice-view .restart-button { background: var(--paper); color: var(--green-deep); border-color: var(--line); }
-
-/* Practice-letter highlight: colour and weight only. Underlines are reserved
-   for typing mistakes so the two signals never get confused. */
-.practice-view .text-display .char.focus-letter { text-decoration: none; color: var(--green); font-weight: 700; }
-/* If a practice letter is typed wrong, the mistake styling wins. */
-.practice-view .text-display .char.focus-letter.incorrect {
-  color: var(--coral);
-  text-decoration: underline wavy;
-  text-underline-offset: 4px;
-}
 
 /* The header bleeds to the screen edges with a negative margin that is larger
    than the page padding at most widths, which caused a sideways scrollbar. */
