@@ -861,7 +861,9 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     captureModeDraft();
     persist();
   }
+  let resultOpenedAt = 0;
   function openResult() {
+    resultOpenedAt = performance.now();
     const overlay = $("#resultOverlay");
     overlay.classList.remove("hidden");
     overlay.setAttribute("aria-hidden", "false");
@@ -977,6 +979,10 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     $("#uppercaseToggle").setAttribute("aria-pressed", String(data.uppercase));
     $("#punctuationToggle").setAttribute("aria-pressed", String(punctuation));
     $("#numbersToggle").setAttribute("aria-pressed", String(numbers));
+    // Phones hide these controls behind "Options"; show how many are active.
+    const active = [data.focusLetters.length > 0, data.uppercase, punctuation, numbers].filter(Boolean).length;
+    $("#optionsCount").hidden = active === 0;
+    $("#optionsCount").textContent = String(active);
   }
   function notify(message) {
     const toast = $("#toast");
@@ -1000,6 +1006,7 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
   let settingsReturnFocus = null;
   function openSettings() {
     syncPracticeFont();
+    $("#themeSetting").checked = document.body.classList.contains("dark");
     settingsReturnFocus = document.activeElement;
     $("#settingsPanel").classList.add("open");
     $("#scrim").classList.add("visible");
@@ -1448,19 +1455,16 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     }
   });
   $("#restartButton").addEventListener("click", () => restart(true));
+  $("#optionsToggle").addEventListener("click", (event) => {
+    const open = $(".session-card").classList.toggle("options-open");
+    event.currentTarget.setAttribute("aria-expanded", String(open));
+  });
   $("#closeResult").addEventListener("click", closeResult);
   $("#resultCloseAction").addEventListener("click", closeResult);
   $("#resultBackdrop").addEventListener("click", closeResult);
   $("#closeStreakCelebration").addEventListener("click", closeStreakCelebration);
   $("#streakCelebration").addEventListener("keydown", (event) => {
-    if (event.key === "Escape" || event.code === "Space") {
-      event.preventDefault();
-      return;
-    }
-    if (event.key === "Tab") {
-      event.preventDefault();
-      $("#closeStreakCelebration").focus();
-    }
+    if (event.key === "Escape" || event.code === "Space") event.preventDefault();
   });
   $("#closeAuth").addEventListener("click", closeAuth);
   $("#authBackdrop").addEventListener("click", closeAuth);
@@ -1591,7 +1595,6 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     }
   });
   $("#goalControl").addEventListener("click", dailyControl);
-  let tabArmed = false, tabShortcutTimer = null;
   document.addEventListener("keydown", (event) => {
     const practiceAvailable = !$("#practiceView").classList.contains("hidden") &&
       $("#settingsPanel").classList.contains("open") === false &&
@@ -1618,22 +1621,6 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
       inputEl.value += event.key;
       inputEl.dispatchEvent(new Event("input", { bubbles: true }));
     }
-    const typingHasFocus = event.target === inputEl || event.target === $("#typingArea");
-    if (event.key === "Tab" && practiceAvailable && typingHasFocus) {
-      event.preventDefault();
-      tabArmed = true;
-      clearTimeout(tabShortcutTimer);
-      tabShortcutTimer = setTimeout(() => (tabArmed = false), 1200);
-    } else if (tabArmed && practiceAvailable && event.key === "Enter") {
-      event.preventDefault();
-      event.stopPropagation();
-      tabArmed = false;
-      clearTimeout(tabShortcutTimer);
-      restart(true);
-    } else if (tabArmed && event.key !== "Shift") {
-      tabArmed = false;
-      clearTimeout(tabShortcutTimer);
-    }
     if (
       event.key === "Escape" &&
       $("#settingsPanel").classList.contains("open")
@@ -1657,9 +1644,9 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
       } catch {}
     }
   });
-  $("#themeToggle").addEventListener("click", () => {
-    document.body.classList.toggle("dark");
-    data.theme = document.body.classList.contains("dark") ? "dark" : "light";
+  $("#themeSetting").addEventListener("change", (event) => {
+    document.body.classList.toggle("dark", event.currentTarget.checked);
+    data.theme = event.currentTarget.checked ? "dark" : "light";
     persist();
   });
   $("#settingsToggle").addEventListener("click", openSettings);
@@ -1801,19 +1788,50 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
     $("#feedbackCount").textContent = "0 / 2000";
     status.textContent = "Thanks — your note was sent. We appreciate you taking the time.";
   });
-  $("#feedbackOverlay").addEventListener("keydown", (event) => {
+  // Focus trap shared by every dialog: Tab and Shift+Tab stay inside whichever
+  // dialog is on top, and focus that has strayed outside is pulled back in.
+  const dialogs = [
+    ["#streakCelebration", (el) => el.classList.contains("show")],
+    ["#resultOverlay", (el) => !el.classList.contains("hidden")],
+    ["#authOverlay", (el) => !el.classList.contains("hidden")],
+    ["#feedbackOverlay", (el) => !el.classList.contains("hidden")],
+    ["#settingsPanel", (el) => el.classList.contains("open")],
+  ];
+  function topDialog() {
+    for (const [selector, isOpen] of dialogs) {
+      const el = $(selector);
+      if (isOpen(el)) return el;
+    }
+    return null;
+  }
+  const FOCUSABLE = 'a[href],button:not(:disabled),input:not(:disabled):not([tabindex="-1"]),select:not(:disabled),textarea:not(:disabled),[tabindex]:not([tabindex="-1"])';
+  document.addEventListener("keydown", (event) => {
     if (event.key !== "Tab") return;
-    const focusable = [...$("#feedbackOverlay").querySelectorAll('button:not(:disabled),input:not([tabindex="-1"]),select,textarea')];
-    if (!focusable.length) return;
-    const first = focusable[0], last = focusable.at(-1);
-    if (event.shiftKey && document.activeElement === first) {
+    const dialog = topDialog();
+    if (!dialog) return;
+    const items = [...dialog.querySelectorAll(FOCUSABLE)].filter((el) => el.getClientRects().length);
+    if (!items.length) {
       event.preventDefault();
-      last.focus();
+      return;
+    }
+    const first = items[0], last = items[items.length - 1];
+    const inside = dialog.contains(document.activeElement);
+    if (!inside || (event.shiftKey && document.activeElement === first)) {
+      event.preventDefault();
+      (event.shiftKey && inside ? last : first).focus();
     } else if (!event.shiftKey && document.activeElement === last) {
       event.preventDefault();
       first.focus();
     }
-  });
+  }, true);
+  // A round can end while keys are still landing; don't let a stray Enter
+  // dismiss the results dialog the instant it appears.
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !$("#resultOverlay").classList.contains("hidden") && performance.now() - resultOpenedAt < 600) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }, true);
   $("#clearHistory").addEventListener("click", () => {
     data.history = [];
     persist();
@@ -1846,14 +1864,6 @@ import { supabase, supabaseConfigError } from "../supabase/client.js";
   $("#nextLesson").addEventListener("click", () => {
     const next = (lessonOrder.indexOf(activeLesson) + 1) % lessonOrder.length;
     selectLesson(lessonOrder[next]);
-  });
-  $("#lessonDrill").addEventListener("click", () => {
-    data.focusLetters = lessons[activeLesson].keys.filter((key) => /^[a-z]$/i.test(key)).slice(0, 5).map((key) => key.toLowerCase());
-    persist();
-    renderTextOptions();
-    if (mode === "quote") setMode("time");
-    else applyNextPassageSettings();
-    $('.nav-link[data-view="practice"]').click();
   });
 
   document.body.classList.toggle("dark", data.theme === "dark");

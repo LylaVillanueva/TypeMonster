@@ -24,7 +24,6 @@
         <div class="top-actions">
           <div class="streak-chip" aria-label="Daily streak"><span class="streak-flame"><img src="./assets/streak.ico" alt="" aria-hidden="true"></span><div><strong id="streakValue">0</strong><span>day streak</span></div></div>
           <button class="daily-header-control" id="goalControl" aria-label="Start daily practice"><span class="goal-header-icon" id="goalControlIcon">▶</span><span class="goal-header-time"><strong id="goalClock">15:00</strong><small id="goalClockLabel">LEFT TODAY</small></span><time id="todayLabel" class="daily-header-date"></time><span class="goal-header-label" id="goalControlLabel">Start a round</span></button>
-          <button class="quiet-button" id="themeToggle" aria-label="Switch color theme" title="Switch color theme">◐</button>
           <button class="quiet-button" id="settingsToggle" aria-label="Open settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h5m4 0h7M4 17h9m4 0h3"/><circle cx="11" cy="7" r="2"/><circle cx="15" cy="17" r="2"/></svg></button>
           <button class="help-button" id="feedbackButton" type="button" aria-haspopup="dialog" aria-controls="feedbackOverlay"><span class="help-mark" aria-hidden="true">?</span><span>Help & feedback</span></button>
           <button class="account-button" id="profileButton" title="Guest profile · click to sign in"><span class="avatar">M</span><span>Guest</span><span class="chevron">⌄</span></button>
@@ -43,6 +42,7 @@
                     <button class="mode-tab" data-mode="zen">Free type</button>
                     <button class="mode-tab" data-mode="quote">Quote</button>
                   </div>
+                  <button class="options-toggle" id="optionsToggle" type="button" aria-expanded="false" aria-controls="practiceTextControls roundOptions"><span>Options</span><span class="options-count" id="optionsCount" hidden></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
                   <div class="extra-options practice-text-controls" id="practiceTextControls" aria-label="Text options">
                     <div class="global-text-options" id="globalTextOptions">
                       <button class="option-toggle" id="uppercaseToggle" aria-pressed="false" title="Capitalize sentence starts and the pronoun I">ABC Uppercase</button>
@@ -119,8 +119,7 @@
                 </div>
                 <div class="session-footer">
                   <span
-                    ><kbd>esc</kbd> <span id="escapeAction">pause</span> <span class="footer-dot">·</span>
-                    <kbd>tab</kbd> + <kbd>enter</kbd> new passage</span
+                    ><kbd>esc</kbd> <span id="escapeAction">pause</span></span
                   ><span id="sessionHint"
                     >Accuracy first.</span
                   >
@@ -138,13 +137,7 @@
                   aria-modal="true"
                   aria-labelledby="resultTitle"
                 >
-                  <button
-                    class="result-close"
-                    id="closeResult"
-                    aria-label="Close results"
-                  >
-                    ×
-                  </button>
+                  <button class="popup-close" id="closeResult" type="button" aria-label="Close results"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
                   <div class="result-mascot"><img src="./assets/logo.ico" alt=""></div>
                   <div class="result-kicker">
                     <span class="result-check">✓</span> ROUND COMPLETE
@@ -280,9 +273,7 @@
                   naturally into place.</span
                 >
                 <div class="lesson-actions">
-                  <button class="lesson-drill" id="lessonDrill">
-                    Practice these keys</button
-                  ><button class="lesson-next" id="nextLesson">
+                  <button class="lesson-next" id="nextLesson">
                     Next lesson <span>→</span>
                   </button>
                 </div>
@@ -346,13 +337,7 @@
           aria-modal="true"
           aria-labelledby="authTitle"
         >
-          <button
-            class="result-close"
-            id="closeAuth"
-            aria-label="Close sign in"
-          >
-            ×
-          </button>
+          <button class="popup-close" id="closeAuth" type="button" aria-label="Close sign in"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
           <div class="auth-mascot"><img src="./assets/logo.ico" alt="Type Monster"></div>
           <div class="eyebrow" id="authEyebrow">YOUR PRACTICE, EVERYWHERE</div>
           <h2 id="authTitle">Sign in</h2>
@@ -379,7 +364,7 @@
       <div class="feedback-overlay hidden" id="feedbackOverlay" aria-hidden="true">
         <div class="feedback-backdrop" id="feedbackBackdrop"></div>
         <section class="feedback-dialog" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle" aria-describedby="feedbackDescription">
-          <button class="result-close" id="closeFeedback" type="button" aria-label="Close help and feedback">×</button>
+          <button class="popup-close" id="closeFeedback" type="button" aria-label="Close help and feedback"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
           <div class="eyebrow">HELP & FEEDBACK</div>
           <h2 id="feedbackTitle">We’re listening.</h2>
           <p class="feedback-description" id="feedbackDescription">Share a suggestion, report a problem, or tell us what would make practice better. No account needed.</p>
@@ -414,13 +399,7 @@
             <div class="eyebrow">MAKE IT YOURS</div>
             <h2 id="settingsTitle">Practice settings</h2>
           </div>
-          <button
-            class="quiet-button"
-            id="closeSettings"
-            aria-label="Close settings"
-          >
-            ×
-          </button>
+          <button class="popup-close" id="closeSettings" type="button" aria-label="Close settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
         </div>
         <section class="settings-section daily-setting">
           <div class="settings-section-heading"><h3>Daily practice</h3><span>01</span></div>
@@ -436,6 +415,7 @@
         <section class="settings-section appearance-setting">
           <div class="settings-section-heading"><h3>Color and text</h3><span>02</span></div>
           <p class="settings-section-note">Soft color pairs, picked to feel easy on the eyes.</p>
+          <label class="setting-row dark-mode-setting"><span><strong>Dark mode</strong><small>Easier on the eyes at night</small></span><input type="checkbox" id="themeSetting"><i class="switch"></i></label>
           <div class="palette-grid" id="paletteChoices" role="group" aria-label="Choose a color palette">
             <button class="palette-choice" type="button" data-palette="garden" aria-pressed="true"><span class="palette-copy"><strong>Moss garden</strong><small>Leaf green · warm cream</small></span><span class="palette-pair"><i style="--swatch:#52745d"></i><i style="--swatch:#e8eee2"></i></span></button>
             <button class="palette-choice" type="button" data-palette="petal" aria-pressed="false"><span class="palette-copy"><strong>Soft petal</strong><small>Berry pink · blush</small></span><span class="palette-pair"><i style="--swatch:#bb6683"></i><i style="--swatch:#f4e3e9"></i></span></button>
