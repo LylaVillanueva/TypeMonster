@@ -2,20 +2,46 @@
 node_modules/
 dist/
 coverage/
+.vite/
+.cache/
+.parcel-cache/
+.turbo/
+*.tsbuildinfo
+.eslintcache
 
-# Local configuration and credentials
+# Local configuration and credentials.
+# Vercel gets these from Project Settings > Environment Variables, never from git.
 .env
 .env.*
 !.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+service-account*.json
 .vercel/
 
-# Supabase local state
+# Supabase local state (the schema and client stay in git)
 supabase/.branches/
 supabase/.temp/
 
+# Editor, IDE and AI-assistant files (personal, not needed to build or deploy)
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+*~
+
+# Test and screenshot output
+playwright-report/
+test-results/
+
 # Operating system and package-manager noise
 .DS_Store
+._*
 Thumbs.db
+Desktop.ini
 *.log
 npm-debug.log*
 yarn-debug.log*
